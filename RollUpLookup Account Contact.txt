@@ -1,0 +1,35 @@
+trigger LookupAccountContact on Contact (after insert) {
+  List<String> relatedAccountIdList = new List<String>();
+    for(Contact curContact: Trigger.New)
+    {
+        relatedAccountIdList.add(curContact.AccountId);
+        system.debug(relatedAccountIdList);
+    }
+     
+      Map<Id, Account> merMap = new Map<Id, Account>([Select Id, Name, 
+                                                                        BigAmount__c 
+                                                                  From  Account
+                                                                  Where Id in :relatedAccountIdList]);
+    
+    system.debug(merMap);
+ for(Contact curContact: Trigger.New)
+    {
+        Account mer = merMap.get(curContact.AccountId);
+      
+        
+        
+        if(mer.BigAmount__c == null) 
+        {
+            mer.BigAmount__c = curContact.Amount__c;
+        } 
+        else
+        {
+            mer.BigAmount__c += curContact.Amount__c;
+        }
+
+    }
+
+ update merMap.values(); 
+
+
+}

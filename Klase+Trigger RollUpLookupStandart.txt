@@ -1,0 +1,74 @@
+****Triggeri****
+trigger TriggerRollUpLookupStandart on Contact (after insert) {
+    
+    
+    ClassRollUpLookupStandart handler = new ClassRollUpLookupStandart();
+    handler.afterInsert();
+
+
+}
+
+
+*****Klasa*****
+
+
+public class ClassRollUpLookupStandart {
+    private List<String> relatedAccountIdList = new List<String>();
+    private Map<Id, Account> merMap;
+    private Map<Id, Account> merMap2;
+    
+ 
+    public void afterInsert()
+    {
+        initializeData();
+        calculateRevenue();
+        updateData();
+    }
+ 
+    private void initializeData()
+    {
+        for(Contact curContact: (List<Contact>)Trigger.New)
+        {
+            relatedAccountIdList.add(curContact.AccountId);
+            System.debug(relatedAccountIdList);
+        }
+          
+        Map<Id, Account> merMap = new Map<Id, Account>([Select Id, Name, 
+                                                                            BigAmount__c 
+                                                                      From  Account
+                                                                    Where Id in :relatedAccountIdList]);
+        merMap2= merMap;
+               
+    }
+ 
+    private void calculateRevenue()
+    {
+       for(Contact curContact: (List<Contact>)Trigger.New)
+        {
+            
+            Account mer = merMap2.get(curContact.AccountId);
+           
+            if(mer.BigAmount__c == null) 
+            {
+                mer.BigAmount__c = curContact.Amount__c;
+            } 
+            else
+            {
+                mer.BigAmount__c += curContact.Amount__c;
+            }
+            System.debug(mer.BigAmount__c);
+        }
+        
+    }
+ 
+    private void updateData()
+    {
+        update merMap2.values();
+    }
+    
+    
+
+}
+
+
+

@@ -1,0 +1,35 @@
+trigger RollUpLookupCustomObject on Femija__c (before insert) {
+    
+    
+  List<String> relatedPrindIdList = new List<String>();
+    for(Femija__c curFemija: Trigger.New)
+    {
+        relatedPrindIdList.add(curFemija.Prind__c);
+        system.debug(relatedPrindIdList);
+    }
+     
+      Map<Id, Prind__c	> merMap = new Map<Id, Prind__c>([Select Id, Name, 
+                                                                        BigAmount__c 
+                                                                  From  Prind__c	
+                                                                  Where Id in :relatedPrindIdList]);
+    
+    system.debug(merMap);
+ for(Femija__c curFemija: Trigger.New)
+    {
+        Prind__c mer = merMap.get(curFemija.Prind__c);
+            
+        
+        if(mer.BigAmount__c == null) 
+        {
+            mer.BigAmount__c = curFemija.Amount__c;
+        } 
+        else
+        {
+            mer.BigAmount__c += curFemija.Amount__c;
+        }
+
+    }
+
+ update merMap.values(); 
+    
+}
